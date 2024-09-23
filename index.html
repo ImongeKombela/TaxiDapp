@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxi Cash App - Barbie Style</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: #333;
+        }
+
+        .app-container {
+            margin: 0 auto;
+            max-width: 400px;
+            padding: 40px 20px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .cover-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: black;
+            color: white;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff69b4;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        p, label {
+            color: #ff69b4; /* Changed to pink */
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #ff69b4;
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #ff1493;
+        }
+
+        button {
+            background-color: #ff69b4; /* Changed to pink */
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #ff1493;
+        }
+
+        .info-section {
+            margin-top: 30px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .info-section p {
+            font-size: 16px;
+        }
+
+        .wallet-section {
+            margin-bottom: 20px;
+        }
+
+        .wallet-section p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .header-icon {
+            margin-bottom: 20px;
+        }
+
+        /* Dark mode elements */
+        body.dark-mode {
+            background: linear-gradient(135deg, #000, #333);
+        }
+
+        .dark-mode h1 {
+            color: #ff69b4;
+        }
+
+        .dark-mode .app-container {
+            background-color: #222;
+            color: white;
+        }
+
+        .dark-mode input[type="text"] {
+            background-color: #333;
+            color: white;
+            border: 2px solid #ff69b4;
+        }
+
+        .dark-mode input[type="text"]:focus {
+            border-color: #ff1493;
+        }
+
+        .dark-mode p,
+        .dark-mode label {
+            color: white;
+        }
+
+        .dark-mode .info-section {
+            background-color: #333;
+            box-shadow: none;
+        }
+
+        .dark-mode button {
+            background-color: #ff69b4;
+        }
+
+        @media screen and (max-width: 768px) {
+            .app-container {
+                padding: 30px 15px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            button {
+                padding: 10px 20px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.36/dist/web3.min.js"></script>
+</head>
+<body>
+
+    <!-- Cover Page -->
+    <div class="cover-container" id="coverPage">
+        <h1>Welcome to Taxi Cash App</h1>
+        <p>Your go-to app for taxi payments and revenue tracking!</p>
+        <button id="enterApp">Enter App</button>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app-container hidden" id="appContainer">
+        <div class="header-icon">
+            <img src="https://img.icons8.com/color/96/000000/taxi.png" alt="Taxi Icon">
+        </div>
+        <h1>Taxi Cash Payment & Revenue Tracking</h1>
+        
+        <!-- Connect Wallet Section -->
+        <div class="wallet-section">
+            <button id="connectWallet">Connect Wallet</button>
+            <p id="walletAddress">Wallet Address: Not Connected</p>
+        </div>
+
+        <!-- Payment Form -->
+        <form id="paymentForm">
+            <label for="amount">Amount to Pay (in Ether):</label>
+            <input type="text" id="amount" name="amount" required>
+            <button type="submit">Pay Taxi</button>
+        </form>
+        <p id="paymentStatus"></p>
+
+        <!-- Revenue Section -->
+        <div class="info-section hidden" id="revenueSection">
+            <h2>Taxi Operator Revenue</h2>
+            <p>Total Revenue: <span id="revenue">0</span> ETH</p>
+            <button id="checkRevenue">Check Revenue</button>
+        </div>
+
+        <button id="toggleView">View Revenue</button>
+    </div>
+
+    <script>
+        // Enter App button functionality
+        document.getElementById('enterApp').addEventListener('click', () => {
+            document.getElementById('coverPage').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+        });
+
+        // Connect to Metamask or Celo Wallet
+        window.addEventListener('load', async () => {
+            if (window.ethereum) {
+                window.web3 = new Web3(window.ethereum);
+                try {
+                    await window.ethereum.enable(); // Request access to the user's wallet
+                } catch (error) {
+                    console.error("User denied account access");
+                }
+            } else {
+                console.log('No Ethereum wallet detected');
+            }
+        });
+
+        // Get Wallet Address and Display it
+        document.getElementById('connectWallet').addEventListener('click', async () => {
+            const accounts = await web3.eth.getAccounts();
+            document.getElementById('walletAddress').innerText = `Wallet Address: ${accounts[0]}`;
+        });
+
+        // Smart Contract Address and ABI
+        const contractAddress = "0x3199ac028922cc955B80928fc5a4E5D5Fd6c6f0E";
+        const contractABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [],
+                "name": "payTaxi",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getRevenue",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "stateMutability": "payable",
+                "type": "receive"
+            }
+        ];
+
+        // Payment Form Submission
+        document.getElementById('paymentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const amount = document.getElementById('amount').value;
+
+            const accounts = await web3.eth.getAccounts();
+            const taxiAppContract = new web3.eth.Contract(contractABI, contractAddress);
+
+            try {
+                await taxiAppContract.methods.payTaxi().send({
+                    from: accounts[0],
+                    value: web3.utils.toWei(amount, 'ether')
+                });
+                document.getElementById('paymentStatus').innerText = 'Payment successful!';
+            } catch (error) {
+                document.getElementById('paymentStatus').innerText = 'Payment failed!';
+                console.error(error);
+            }
+        });
+
+        // Check Revenue of the Taxi Operator
+        document.getElementById('checkRevenue').addEventListener('click', async () => {
+            const accounts = await web3.eth.getAccounts();
+            const taxiAppContract = new web3.eth.Contract(contractABI, contractAddress);
+
+            try {
+                const revenue = await taxiAppContract.methods.getRevenue().call({ from: accounts[0] });
+                document.getElementById('revenue').innerText = web3.utils.fromWei(revenue, 'ether');
+            } catch (error) {
+                console.error("Error fetching revenue:", error);
+            }
+        });
+
+        // Toggle between Payment and Revenue view
+        document.getElementById('toggleView').addEventListener('click', () => {
+            const paymentForm = document.getElementById('paymentForm');
+            const revenueSection = document.getElementById('revenueSection');
+            if (paymentForm.classList.contains('hidden')) {
+                paymentForm.classList.remove('hidden');
+                revenueSection.classList.add('hidden');
+                document.getElementById('toggleView').innerText = 'View Revenue';
+            } else {
+                paymentForm.classList.add('hidden');
+                revenueSection.classList.remove('hidden');
+                document.getElementById('toggleView').innerText = 'Back to Payment';
+            }
+        });
+    </script>
+</body>
+</html>
